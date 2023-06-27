@@ -12,10 +12,10 @@ import java.util.concurrent.Future;
 import static org.jstepanovic.commons.Constants.SERVER_ADDRESS;
 import static org.jstepanovic.commons.Constants.SERVER_PORT;
 
-// Singleton
+
 public class Server {
 
-    private int numberOfProcessors;
+    private final int numberOfProcessors;
 
     private static Server instance;
 
@@ -24,9 +24,10 @@ public class Server {
     }
 
     public static Server getInstance() {
-        return instance == null
-                ? new Server()
-                : instance;
+        if (instance == null) {
+            instance = new Server();
+        }
+        return instance;
     }
 
     public void run() {

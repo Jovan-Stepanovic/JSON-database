@@ -23,8 +23,8 @@ public class Repository {
     );
 
 
-    private Lock readLock;
-    private Lock writeLock;
+    private final Lock readLock;
+    private final Lock writeLock;
 
     public Repository() {
         ReadWriteLock lock = new ReentrantReadWriteLock();

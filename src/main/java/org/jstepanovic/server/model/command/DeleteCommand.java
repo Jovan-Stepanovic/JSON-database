@@ -7,7 +7,7 @@ import org.jstepanovic.server.repository.Repository;
 
 public class DeleteCommand implements Command {
 
-    private Repository repository;
+    private final Repository repository;
 
     public DeleteCommand(Repository repository) {
         this.repository = repository;

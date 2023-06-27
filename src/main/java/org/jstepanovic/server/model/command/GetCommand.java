@@ -5,7 +5,7 @@ import org.jstepanovic.server.repository.Repository;
 
 
 public class GetCommand implements Command {
-    private Repository repository;
+    private final Repository repository;
 
     public GetCommand(Repository repository) {
         this.repository = repository;

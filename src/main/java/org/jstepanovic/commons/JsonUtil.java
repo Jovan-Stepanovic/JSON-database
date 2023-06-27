@@ -3,7 +3,6 @@ package org.jstepanovic.commons;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import org.jstepanovic.client.util.RequestUtil;
 
 import java.io.*;
 
@@ -29,13 +28,13 @@ public class JsonUtil {
     public static String readJsonRequest(String requestFileName) {
         InputStream inputStream = JsonUtil.class.getResourceAsStream("/requests/" + requestFileName);
 
-        try {
-            Reader reader = new InputStreamReader(inputStream);
-            JsonObject request =  GSON.fromJson(reader, JsonObject.class);
-            return GSON.toJson(request);
-        } catch (NullPointerException e) {
-            throw new RuntimeException("JSON request file with name you provided doesn't exist, fileName: " + requestFileName, e);
+        if (inputStream == null) {
+            throw new RuntimeException("JSON request file with name you provided doesn't exist, fileName: " + requestFileName);
         }
+
+        Reader reader = new InputStreamReader(inputStream);
+        JsonObject request =  GSON.fromJson(reader, JsonObject.class);
+        return GSON.toJson(request);
     }
 
     public static JsonObject readJSON(String pathToJsonFile) {
