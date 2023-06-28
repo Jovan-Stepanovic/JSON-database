@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'jacoco'
+    id("org.barfuin.gradle.jacocolog").version("2.0.0")
 }
 
 group = 'org.jstepanovic'
@@ -18,51 +19,87 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
-jacoco {
-    toolVersion = '0.8.8' // Specify the desired JaCoCo version
+tasks.jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+
+    reports {
+        html.required.set(true)
+        html.outputLocation = layout.buildDirectory.dir('jacoco')
+
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    "org/jstepanovic/client/model",
+                    "org/jstepanovic/client/Main.class",
+                    "org/jstepanovic/server/model",
+                    "org/jstepanovic/server/Main.class",
+                    "org/jstepanovic/commons/Constants.class"
+            ])
+        }))
+    }
+    finalizedBy(tasks.jacocoTestCoverageVerification)
 }
 
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.8"
+}
+
+//jacoco {
+//    toolVersion = '0.8.8' // Specify the desired JaCoCo version
+//}
+//
 test {
     useJUnitPlatform()
 //    finalizedBy jacocoTestReport // Generate JaCoCo test coverage report after running tests
 }
+//
+//def jacocoHtmlDir = file("${buildDir}/jacocoHtml")
 
-def jacocoHtmlDir = file("${buildDir}/jacocoHtml")
-
-task createJacocoHtmlDir {
-    doLast {
-        jacocoHtmlDir.mkdirs()
-    }
-}
-
-createJacocoHtmlDir.dependsOn(test)
+//task createJacocoHtmlDir {
+//    doLast {
+//        jacocoHtmlDir.mkdirs()
+//    }
+//}
+//
+//createJacocoHtmlDir.dependsOn(test)
 
 //tasks.withType(Test).configureEach {
 //    finalizedBy jacocoTestReport
 //}
 
 
-jacocoTestReport {
-    reports {
-        xml.required = false
-        csv.required = false
-        html.required = true
-        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
-//        reportsDir = file("$buildDir/jacoco")
-//        html.destination file("${buildDir}/jacocoHtml")
-    }
-}
-
-
-jacocoTestCoverageVerification {
-    violationRules {
-        rule {
-            limit {
-                minimum = 0.8 // Set the minimum coverage goal to 80%
-            }
-        }
-    }
-}
+//jacocoTestReport {
+//    reports {
+//        xml.required = false
+//        csv.required = false
+//        html.required = true
+//        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+////        reportsDir = file("$buildDir/jacoco")
+////        html.destination file("${buildDir}/jacocoHtml")
+//    }
+//}
+//
+//
+//jacocoTestCoverageVerification {
+//    violationRules {
+//        rule {
+//            limit {
+//                minimum = 0.8 // Set the minimum coverage goal to 80%
+//            }
+//        }
+//    }
+//}
 
 //// Create JacocoHtml directory
 //tasks.create("createJacocoHtmlDir") {

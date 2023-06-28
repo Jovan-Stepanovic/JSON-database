@@ -7,7 +7,7 @@ import org.jstepanovic.client.model.CommandLineArgs;
 
 import static org.jstepanovic.commons.JsonUtil.*;
 
-public class RequestUtil {
+public final class RequestUtil {
     public static String parseRequest(String[] commandLineArgs) {
         CommandLineArgs request = new CommandLineArgs();
         JCommander.newBuilder()

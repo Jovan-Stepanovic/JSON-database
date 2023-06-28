@@ -22,7 +22,6 @@ public class Repository {
         System.getProperty("user.dir")
     );
 
-
     private final Lock readLock;
     private final Lock writeLock;
 
