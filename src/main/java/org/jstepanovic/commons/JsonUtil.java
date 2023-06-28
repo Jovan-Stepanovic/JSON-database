@@ -9,7 +9,7 @@ import java.io.*;
 public class JsonUtil {
 
     public static final Gson GSON = new GsonBuilder()
-            .setPrettyPrinting()
+//            .setPrettyPrinting()
             .create();
 
     public static void writeJSON(String pathToJsonFile, JsonObject data) {

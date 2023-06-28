@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
 }
 
 group = 'org.jstepanovic'
@@ -17,6 +18,58 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
+jacoco {
+    toolVersion = '0.8.8' // Specify the desired JaCoCo version
+}
+
 test {
     useJUnitPlatform()
+//    finalizedBy jacocoTestReport // Generate JaCoCo test coverage report after running tests
 }
+
+def jacocoHtmlDir = file("${buildDir}/jacocoHtml")
+
+task createJacocoHtmlDir {
+    doLast {
+        jacocoHtmlDir.mkdirs()
+    }
+}
+
+createJacocoHtmlDir.dependsOn(test)
+
+//tasks.withType(Test).configureEach {
+//    finalizedBy jacocoTestReport
+//}
+
+
+jacocoTestReport {
+    reports {
+        xml.required = false
+        csv.required = false
+        html.required = true
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+//        reportsDir = file("$buildDir/jacoco")
+//        html.destination file("${buildDir}/jacocoHtml")
+    }
+}
+
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.8 // Set the minimum coverage goal to 80%
+            }
+        }
+    }
+}
+
+//// Create JacocoHtml directory
+//tasks.create("createJacocoHtmlDir") {
+//    doLast {
+//        jacocoHtmlDir.mkdirs()
+//    }
+//}
+//
+//// Configure JacocoTestReport task to depend on createJacocoHtmlDir
+//jacocoTestReport.dependsOn(createJacocoHtmlDir)
