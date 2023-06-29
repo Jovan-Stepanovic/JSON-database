@@ -7,6 +7,8 @@ import com.google.gson.JsonObject;
 import org.jstepanovic.server.model.Response;
 
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -58,25 +60,30 @@ public class Repository {
         return Response.ok();
     }
 
+    // TODO: 6/29/23 Apply principle from handleGet !!!!!!!!!!!!!!!!!!!!!!!
+
     private Response setNestedObject(JsonElement key,
                                JsonElement value,
                                JsonObject database) {
 
         JsonArray jsonArray = key.getAsJsonArray();
         JsonElement jsonNode = database;
+        String lastKey = jsonArray.get(jsonArray.size() -1).getAsString();
 
         for (JsonElement jsonKey: jsonArray) {
             var currentKey = jsonKey.getAsString();
 
-            // todo will only work for setting the last child
-            try {
-                jsonNode = jsonNode.getAsJsonObject().get(currentKey).getAsJsonObject();
-            } catch (Exception e) {
-                jsonNode.getAsJsonObject().add(jsonKey.getAsString(), value);
-                return Response.ok();
+            if(currentKey.equals(lastKey)) {
+                jsonNode.getAsJsonObject().add(currentKey, value);
+            } else {
+
+                if (!jsonNode.getAsJsonObject().has(currentKey)) {
+                    jsonNode.getAsJsonObject().add(currentKey, new JsonObject());
+                }
+                jsonNode = jsonNode.getAsJsonObject().get(currentKey);
             }
         }
-        return Response.error();
+        return Response.ok();
     }
 
 
@@ -90,31 +97,62 @@ public class Repository {
     }
 
     private Response handleGet(JsonElement key, JsonObject database) {
+        Queue<String> keyQueue = transformToStringQueue(key);
+        JsonElement result = getNestedElement(keyQueue, database);
+        return result == null
+                ? Response.error()
+                : Response.ok(result);
+    }
+
+    private Queue<String> transformToStringQueue(JsonElement key) {
+        Queue<String> nestedKeys = new LinkedList<>();
+
         if (key.isJsonArray()) {
-            return getNestedObject(key, database);
+            for (JsonElement element : key.getAsJsonArray()) {
+                nestedKeys.add(element.getAsString());
+            }
+        } else {
+            nestedKeys.add(key.getAsString());
         }
 
-        return database.has(key.getAsString())
-                ? Response.ok(database.get(key.getAsString()))
-                : Response.error();
+        return nestedKeys;
     }
 
 
-    private Response getNestedObject(JsonElement key, JsonObject database) {
-        JsonArray nestedKeys = key.getAsJsonArray();
-        JsonElement jsonNode = database;
+    //todo Recursion!!!!
+//    private Response getNestedObject(JsonArray nestedKeys, JsonObject database) {
+//        JsonObject jsonNode = database;
+//        String lastKey = nestedKeys.get(nestedKeys.size() -1).getAsString();
+//
+//        for (JsonElement key: nestedKeys) {
+//            var currentKey = key.getAsString();
+//
+//            if(currentKey.equals(lastKey)) {
+//                if (jsonNode.has(currentKey)) {
+//                    return Response.ok(jsonNode.get(currentKey));
+//                }
+//
+//                return Response.error();
+//            }
+//
+//            jsonNode = jsonNode.get(currentKey).getAsJsonObject();
+//        }
+//
+//       return Response.error();
+//    }
 
-        for (JsonElement jsonKey: nestedKeys) {
-            var currentKey = jsonKey.getAsString();
 
-            try {
-                jsonNode = jsonNode.getAsJsonObject().get(currentKey);
-            } catch (Exception e) {
-                return Response.error();
+    private JsonElement getNestedElement(Queue<String> keys, JsonObject jsonObject) {
+        String currentKey = keys.poll();
+
+        if(keys.peek() == null) {
+            if (jsonObject.has(currentKey)) {
+                return jsonObject.get(currentKey);
             }
+            return null;
         }
 
-       return Response.ok(jsonNode);
+       return  getNestedElement(keys, jsonObject.get(currentKey).getAsJsonObject());
     }
 
 
@@ -147,6 +185,7 @@ public class Repository {
     }
 
 
+    // TODO: 6/29/23 Apply principle from handleGet !!!!!!!!!!!!!!!!!!!!!!!
     private Response deleteNestedObject(JsonArray nestedKeys, JsonObject database) {
         JsonElement jsonNode = database;
 

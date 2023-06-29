@@ -5,6 +5,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class JsonUtil {
 
@@ -13,17 +16,18 @@ public class JsonUtil {
             .create();
 
     public static void writeJSON(String pathToJsonFile, JsonObject data) {
+
+        Path path = Paths.get(pathToJsonFile);
+        if (Files.notExists(path)) {
+            throw new RuntimeException("Invalid path to JSON database");
+        }
+
         try (FileWriter writer = new FileWriter(pathToJsonFile)) {
             GSON.toJson(data, writer);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Couldn't write to JSON database", e);
         }
     }
-
-//    public static String readJsonRequest(String pathToJsonFile) {
-//        JsonObject request = readJSON(pathToJsonFile);
-//        return GSON.toJson(request);
-//    }
 
     public static String readJsonRequest(String requestFileName) {
         InputStream inputStream = JsonUtil.class.getResourceAsStream("/requests/" + requestFileName);
@@ -39,10 +43,10 @@ public class JsonUtil {
 
     public static JsonObject readJSON(String pathToJsonFile) {
         try (FileReader reader = new FileReader(pathToJsonFile)) {
-            return GSON.fromJson(reader, JsonObject.class);
+            JsonObject database = GSON.fromJson(reader, JsonObject.class);
+            return database == null ? new JsonObject() : database;
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Invalid path to JSON database", e);
         }
-        return new JsonObject();
     }
 }
