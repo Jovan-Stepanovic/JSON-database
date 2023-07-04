@@ -142,7 +142,51 @@ public class RepositoryTest {
 
     // Delete
 
+    @Test
+    public void deleteNestedObjectFromDatabase() {
+        clearDatabase();
 
+        String databaseBeforeOperation = "{\"person\":{\"name\":\"Elon Musk\"," +
+                "\"car\":{\"model\":\"Tesla Roadster\"}," +
+                "\"rocket\":{\"name\":\"Falcon 9\",\"launches\":\"88\"}}}";
+        JsonUtil.writeJSON(JSON_DB_PATH, GSON.fromJson(databaseBeforeOperation, JsonObject.class));
+
+        JsonArray complexKey = new JsonArray(3);
+        complexKey.add("person");
+        complexKey.add("rocket");
+        complexKey.add("launches");
+
+        String expectedDatabase = "{\"person\":{\"name\":\"Elon Musk\"," +
+                "\"car\":{\"model\":\"Tesla Roadster\"}," +
+                "\"rocket\":{\"name\":\"Falcon 9\"}}}";
+
+        Assertions.assertEquals(okResponse, repository.delete(complexKey));
+        Assertions.assertEquals(
+                GSON.fromJson(expectedDatabase, JsonObject.class),
+                JsonUtil.readJSON(JSON_DB_PATH));
+
+    }
+
+    @Test
+    public void deleteWithWrongKeyNestedObjectFromDatabase() {
+        clearDatabase();
+
+        String database = "{\"person\":{\"name\":\"Elon Musk\"," +
+                "\"car\":{\"model\":\"Tesla Roadster\"}," +
+                "\"rocket\":{\"name\":\"Falcon 9\",\"launches\":\"88\"}}}";
+        JsonUtil.writeJSON(JSON_DB_PATH, GSON.fromJson(database, JsonObject.class));
+
+        JsonArray complexKey = new JsonArray(3);
+        complexKey.add("person");
+        complexKey.add("grrr");
+        complexKey.add("wrongKey");
+
+        Assertions.assertEquals(errorResponse, repository.delete(complexKey));
+        Assertions.assertEquals(
+                GSON.fromJson(database, JsonObject.class),
+                JsonUtil.readJSON(JSON_DB_PATH));
+
+    }
 
 
     @AfterAll
