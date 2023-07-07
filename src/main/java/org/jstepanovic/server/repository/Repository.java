@@ -15,7 +15,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static org.jstepanovic.commons.JsonUtil.*;
 
 
-
 public class Repository {
 
     public static final String JSON_DB_PATH = String.format(

@@ -17,12 +17,13 @@ public class Session implements Callable<Boolean> {
 
     private final Socket socket;
 
-    private final Repository repository = new Repository();
+    private final Repository repository;
 
     private Command command;
 
-    public Session(Socket socketForClient) {
+    public Session(Socket socketForClient, Repository repository) {
         this.socket = socketForClient;
+        this.repository = repository;
     }
 
     @Override

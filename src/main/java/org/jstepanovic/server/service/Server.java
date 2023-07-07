@@ -1,5 +1,7 @@
 package org.jstepanovic.server.service;
 
+import org.jstepanovic.server.repository.Repository;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -18,6 +20,8 @@ public class Server {
     private final int numberOfProcessors;
 
     private static Server instance;
+
+    private final Repository repository = new Repository();
 
     private Server() {
         numberOfProcessors = Runtime.getRuntime().availableProcessors();
@@ -39,7 +43,7 @@ public class Server {
             Future<Boolean> future;
             do {
                 Socket clientSocket = server.accept();
-                future = executorService.submit(new Session(clientSocket));
+                future = executorService.submit(new Session(clientSocket, repository));
             } while (future.get());
 
             executorService.shutdown();

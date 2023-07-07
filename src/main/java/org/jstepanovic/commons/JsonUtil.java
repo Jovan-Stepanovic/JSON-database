@@ -1,7 +1,6 @@
 package org.jstepanovic.commons;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import java.io.*;
@@ -11,12 +10,9 @@ import java.nio.file.Paths;
 
 public class JsonUtil {
 
-    public static final Gson GSON = new GsonBuilder()
-//            .setPrettyPrinting()
-            .create();
+    public static final Gson GSON = new Gson();
 
     public static void writeJSON(String pathToJsonFile, JsonObject data) {
-
         Path path = Paths.get(pathToJsonFile);
         if (Files.notExists(path)) {
             throw new RuntimeException("Invalid path to JSON database");
@@ -31,11 +27,10 @@ public class JsonUtil {
 
     public static String readJsonRequest(String requestFileName) {
         InputStream inputStream = JsonUtil.class.getResourceAsStream("/requests/" + requestFileName);
-
         if (inputStream == null) {
-            throw new RuntimeException("JSON request file with name you provided doesn't exist, fileName: " + requestFileName);
+            throw new RuntimeException("JSON request file with name you provided doesn't exist, fileName: "
+                    + requestFileName);
         }
-
         Reader reader = new InputStreamReader(inputStream);
         JsonObject request =  GSON.fromJson(reader, JsonObject.class);
         return GSON.toJson(request);
