@@ -6,50 +6,64 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.net.SocketException;
+import java.util.concurrent.*;
 
 import static org.jstepanovic.commons.Constants.SERVER_ADDRESS;
 import static org.jstepanovic.commons.Constants.SERVER_PORT;
 
 
-public class Server {
+public enum Server {
+    INSTANCE;
 
-    private final int numberOfProcessors;
-
-    private static Server instance;
+    private final int numberOfProcessors = Runtime.getRuntime().availableProcessors();
+    private final ExecutorService executorService = Executors.newFixedThreadPool(numberOfProcessors);
 
     private final Repository repository = new Repository();
 
-    private Server() {
-        numberOfProcessors = Runtime.getRuntime().availableProcessors();
-    }
+    private boolean isServerRunning;
 
-    public static Server getInstance() {
-        if (instance == null) {
-            instance = new Server();
-        }
-        return instance;
-    }
+    private ServerSocket serverSocket;
 
     public void run() {
-        try(ServerSocket server = new ServerSocket(SERVER_PORT, 50, InetAddress.getByName(SERVER_ADDRESS))) {
-            System.out.println("Server started");
+        try {
+            serverSocket = new ServerSocket(SERVER_PORT, 50, InetAddress.getByName(SERVER_ADDRESS));
 
-            ExecutorService executorService = Executors.newFixedThreadPool(numberOfProcessors);
+            isServerRunning = true;
+            System.out.println("Server is running");
 
-            Future<Boolean> future;
-            do {
-                Socket clientSocket = server.accept();
-                future = executorService.submit(new Session(clientSocket, repository));
-            } while (future.get());
+            executorService.submit(new Session(serverSocket.accept(), repository));
 
-            executorService.shutdown();
+            while (true) {
+                try {
+                    Socket clientSocket = serverSocket.accept();
+                    System.out.println("started communication with the new client");
+                    executorService.submit(new Session(clientSocket, repository));
+                } catch (SocketException e) {
+                    isServerRunning = false;
+                    System.out.println("Server stopped");
+                    break;
+                }
+            }
 
-        } catch (IOException | ExecutionException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+    public synchronized void stop() {
+        try {
+            executorService.shutdown();
+            executorService.awaitTermination(200, TimeUnit.MILLISECONDS);
+            System.out.println("Server is stopping....");
+            serverSocket.close();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean isRunning() {
+        return isServerRunning;
+    }
+
 }
