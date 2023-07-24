@@ -16,7 +16,6 @@ public class ClientServerTest {
         final String[] deleteArgs = {"-in", "deleteFile"};
         final String[] exitArgs = {"-t", "exit"};
 
-        Server server = Server.getInstance();
         Client client = new Client();
         Client client2 = new Client();
         Client client3 = new Client();
@@ -24,8 +23,7 @@ public class ClientServerTest {
 
         ExecutorService executor = Executors.newFixedThreadPool(4);
 
-        executor.submit(server::run);
-        TimeUnit.MILLISECONDS.sleep(200);
+        executor.submit(Server.INSTANCE::run);
 
         executor.submit(() -> client.run(setArgs));
         TimeUnit.MILLISECONDS.sleep(50);
@@ -36,12 +34,14 @@ public class ClientServerTest {
         TimeUnit.MILLISECONDS.sleep(300);
         executor.submit(() -> client4.run(exitArgs));
 
+        TimeUnit.MILLISECONDS.sleep(300);
         executor.shutdown();
-        executor.awaitTermination(200, TimeUnit.MILLISECONDS);
-
+        executor.awaitTermination(500, TimeUnit.MILLISECONDS);
 
         Assertions.assertTrue(executor.isShutdown());
         Assertions.assertTrue(executor.isTerminated());
 
+
+        Assertions.assertFalse(Server.INSTANCE.isRunning());
     }
 }
