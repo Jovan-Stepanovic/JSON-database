@@ -9,6 +9,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import util.TestUtil;
 
 import static org.jstepanovic.commons.JsonUtil.GSON;
 
@@ -191,7 +192,7 @@ public class RepositoryTest {
 
     @AfterAll
     public static void clearDatabase() {
-        JsonUtil.writeJSON(JSON_DB_PATH, new JsonObject());
+        TestUtil.clearDatabase();
     }
 
 

@@ -2,6 +2,7 @@ import org.jstepanovic.client.service.Client;
 import org.jstepanovic.server.service.Server;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import util.TestUtil;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,7 +17,7 @@ public class ClientServerTest {
         final String[] deleteArgs = {"-in", "deleteFile"};
         final String[] exitArgs = {"-t", "exit"};
 
-        Server server = Server.getInstance();
+
         Client client = new Client();
         Client client2 = new Client();
         Client client3 = new Client();
@@ -24,24 +25,30 @@ public class ClientServerTest {
 
         ExecutorService executor = Executors.newFixedThreadPool(4);
 
-        executor.submit(server::run);
-        TimeUnit.MILLISECONDS.sleep(200);
+        executor.submit(Server.INSTANCE::run);
+        TimeUnit.MILLISECONDS.sleep(500);
 
         executor.submit(() -> client.run(setArgs));
-        TimeUnit.MILLISECONDS.sleep(50);
         executor.submit(() -> client2.run(getArgs));
-        TimeUnit.MILLISECONDS.sleep(50);
         executor.submit(() -> client3.run(deleteArgs));
+        executor.submit(() -> new Client().run(getArgs));
 
-        TimeUnit.MILLISECONDS.sleep(300);
+        TimeUnit.MILLISECONDS.sleep(500);
         executor.submit(() -> client4.run(exitArgs));
 
         executor.shutdown();
-        executor.awaitTermination(200, TimeUnit.MILLISECONDS);
 
+
+        executor.awaitTermination(300, TimeUnit.MILLISECONDS);
 
         Assertions.assertTrue(executor.isShutdown());
         Assertions.assertTrue(executor.isTerminated());
 
+        Assertions.assertFalse(Server.INSTANCE.isRunning());
+
+        TestUtil.clearDatabase();
     }
+
+
+
 }

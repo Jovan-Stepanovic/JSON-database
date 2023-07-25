@@ -29,7 +29,7 @@ public class Client {
             System.out.printf("Received: %s\n", jsonResponse);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Server does not respond, couldn't create communication chanel with the server");
         }
     }
 }

@@ -10,10 +10,9 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.Callable;
 
 
-public class Session implements Callable<Boolean> {
+public class Session implements Runnable {
 
     private final Socket socket;
 
@@ -26,12 +25,13 @@ public class Session implements Callable<Boolean> {
         this.repository = repository;
     }
 
+
     @Override
-    public Boolean call() {
+    public void run() {
         try (
-                DataInputStream input = new DataInputStream(socket.getInputStream());
-                DataOutputStream output = new DataOutputStream(socket.getOutputStream())
-        ) {
+            DataInputStream input = new DataInputStream(socket.getInputStream());
+            DataOutputStream output = new DataOutputStream(socket.getOutputStream()))
+        {
             while (true) {
                 try {
                     String jsonRequest = input.readUTF(); // reading the message
@@ -43,20 +43,18 @@ public class Session implements Callable<Boolean> {
 
                     if (command instanceof ExitCommand) {
                         socket.close();
-                        return false;
+                        Server.INSTANCE.stop();
+                        break;
                     }
-
                 } catch (EOFException e) {
                     socket.close();
-                    return true;
+                    break;
                 }
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return true;
     }
 
     private String executeCommand(JsonObject request) {
